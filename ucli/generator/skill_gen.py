@@ -49,7 +49,8 @@ def generate_skill(
         )
         return False
 
-    out_dir = output_dir or skills_path(server_name)
+    out_dir = (output_dir or skills_path(server_name)).expanduser().resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
     skill_md = out_dir / "SKILL.md"
 
     # Compute source_cli_hash
@@ -67,7 +68,7 @@ def generate_skill(
 
     source_version = cli_data.get("version") or "null"
 
-    backend = get_backend()
+    backend = get_backend(write_dirs=[out_dir])
     command_name = "skill generate"
 
     # Check for unfinished session
@@ -224,6 +225,7 @@ def _build_prompt(
         f"Remember to create the users/ directory, users/.gitkeep, and users/skill.md (empty template).\n"
         f"If {output_dir}/users/workflows.md already exists, do not overwrite it.\n\n"
         f"Important constraints:\n"
+        f"- Only write the requested Skill files. ucli will validate them after you finish; do not run shell commands\n"
         f"- SKILL.md must be concise, ≤ 800 tokens\n"
         f"- The source_cli_hash in the frontmatter must use the value given above: \"{source_cli_hash}\"; do not compute it yourself\n"
         f"- Prefer the shortest form from command_shortcuts in command tables\n"
@@ -242,6 +244,7 @@ def _build_retry_prompt(server_name: str, output_dir: Path, errors: list[str]) -
         f"Note:\n"
         f"- You have already read the rules/example/YAML/tools files; no need to re-read them\n"
         f"- Keep all correct parts unchanged; only fix the listed issues\n"
+        f"- Only write the requested files. ucli will validate them after you finish; do not run shell commands\n"
         f"- After fixing, output a summary: \"Fixed: <brief description of what was fixed>\"\n"
     )
 
@@ -251,5 +254,6 @@ def _build_resume_prompt(server_name: str, output_dir: Path) -> str:
         f"Please continue the unfinished Skill file generation task.\n"
         f"Target server: {server_name}\n"
         f"Output directory: {output_dir}\n"
+        f"Only write the requested files. ucli will validate them after you finish; do not run shell commands.\n"
         f"If the files have already been generated, check whether they are complete. If not, continue from where the task was interrupted.\n"
     )

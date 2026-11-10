@@ -273,7 +273,7 @@ def _build_exec_add_prompt(
         "- Add concise English _description fields and useful _examples when obvious.\n"
         f"- Do not generate server_aliases or command_shortcuts that conflict with reserved commands: {reserved}.\n"
         "- Do not write or modify tools.json or skill files.\n"
-        f"- After writing, run `ucli cli validate {server_name}` and fix any errors until validation passes.\n"
+        "- Only write the requested YAML file. ucli will validate it after you finish; do not run shell commands.\n"
         "- Output only a short completion summary after the file is written.\n"
     )
 
@@ -298,7 +298,7 @@ def _build_retry_prompt(server_name: str, errors: list[str]) -> str:
     return (
         f"The YAML written to {output_path} has these validation errors:\n\n"
         f"{error_text}\n\n"
-        f"Fix only those issues, rewrite {output_path}, and run `ucli cli validate {server_name}` again.\n"
+        f"Fix only those issues and rewrite {output_path}. ucli will validate it after you finish; do not run shell commands.\n"
         "Keep all correct existing mappings unchanged."
     )
 
@@ -307,7 +307,7 @@ def _build_resume_prompt(server_name: str) -> str:
     return (
         "Continue the unfinished _exec mapping task.\n"
         f"Target server: {server_name}\n"
-        "If cli.yaml has already been written, validate it and fix any issues."
+        "Only write the requested YAML file. ucli will validate it after you finish; do not run shell commands."
     )
 
 

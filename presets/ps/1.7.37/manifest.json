@@ -30,8 +30,8 @@
     "tools.json"
   ],
   "checksums": {
-    "backend/package-lock.json": "d4f938f3e63ec980e8dc702057c3955b7b7bfa79aa06299a33cb4b6d279f5984",
-    "backend/package.json": "3d28508b6f8c90f34a5763c01de7891b52341b70879c80d29a6b22a4012392d6",
+    "backend/package-lock.json": "23c4a28ffb17b6b6b6ff6211a77bb439cf0508bf6607c116a819fcb2d83a28ae",
+    "backend/package.json": "591f7835ac5b50cca276ae262606117019a08931233bf99323909d72943cb751",
     "cli.yaml": "1aa6772640ec8a5a64056fd32cb9f16867caae0ed6f8b4586cf11d9d12db9232",
     "skills/SKILL.md": "0512bd7cf9432852ca001c31c3a9eff6df996fbd6ad2fec65364d5e184288d38",
     "skills/reference/adjust.md": "bc14dea15360bddd9135ecd2420bac3e90056a89be260c16b0b6c5103d53f822",

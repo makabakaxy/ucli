@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -10,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Optional
 
-from ucli.constants import SESSIONS_DIR, SESSION_EXPIRY_HOURS
+from ucli.constants import DATA_DIR, SESSIONS_DIR, SESSION_EXPIRY_HOURS
 from ucli.utils import safe_filename
 
 
@@ -112,9 +113,42 @@ Output ONLY the status line, nothing else."""
 class ClaudeCLIBackend(LLMBackend):
     """Claude CLI backend (MVP default)."""
 
-    def __init__(self, command: str = "claude", model: str = "sonnet"):
+    def __init__(self, command: str = "claude", model: str = "sonnet", *, write_dirs: list[Path] | None = None):
         self.command = command
         self.model = model
+        self.write_dirs = tuple(dict.fromkeys(Path(path).expanduser().resolve() for path in write_dirs or []))
+        self._session_commands: dict[str, str] = {}
+
+    def _permission_args(self, command_name: str) -> list[str]:
+        """Grant only the tools needed by this operation unless explicitly opted out."""
+        isolated_mcp = ["--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}']
+        if command_name == "summarize":
+            return ["--permission-mode", "default", "--tools", "", *isolated_mcp]
+        if os.environ.get("UCLI_UNSAFE_AI") == "1":
+            return ["--dangerously-skip-permissions"]
+        if command_name == "install search":
+            return ["--permission-mode", "default", "--tools", "WebSearch,WebFetch",
+                    "--allowedTools", "WebSearch,WebFetch", *isolated_mcp]
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        directory_args = []
+        for directory in dict.fromkeys([DATA_DIR, *self.write_dirs]):
+            directory.mkdir(parents=True, exist_ok=True)
+            directory_args.extend(["--add-dir", str(directory)])
+        return ["--permission-mode", "acceptEdits", "--tools", "Read,Write,Edit",
+                *directory_args, *isolated_mcp]
+
+    def _session_command(self, session_id: str) -> str:
+        if session_id in self._session_commands:
+            return self._session_commands[session_id]
+        for path in SESSIONS_DIR.glob("*.session.json"):
+            try:
+                data = json.loads(path.read_text())
+            except (OSError, ValueError):
+                continue
+            if isinstance(data, dict) and data.get("session_id") == session_id:
+                command = data.get("command", "")
+                return command if isinstance(command, str) else ""
+        return ""
 
     @property
     def backend_type(self) -> str:
@@ -133,7 +167,7 @@ class ClaudeCLIBackend(LLMBackend):
             self.command, "-p", prompt,
             "--output-format", "json",
             "--model", self.model,
-            "--dangerously-skip-permissions",
+            *self._permission_args(command_name),
         ]
 
         if show_progress:
@@ -142,6 +176,7 @@ class ClaudeCLIBackend(LLMBackend):
             result = self._run(cmd)
 
         if result.session_id and command_name and server_name:
+            self._session_commands[result.session_id] = command_name
             self._save_session(result.session_id, command_name, server_name)
 
         return result
@@ -157,7 +192,7 @@ class ClaudeCLIBackend(LLMBackend):
         cmd = [
             self.command, "-p", prompt,
             "--output-format", "json",
-            "--dangerously-skip-permissions",
+            *self._permission_args(self._session_command(session_id)),
             "--resume", session_id,
         ]
 
@@ -179,7 +214,7 @@ class ClaudeCLIBackend(LLMBackend):
             self.command, "-p", prompt,
             "--output-format", "json",
             "--model", self.model,
-            "--dangerously-skip-permissions",
+            *self._permission_args("summarize"),
             "--max-turns", "1",
             "--no-session-persistence",
         ]
@@ -356,6 +391,6 @@ class ClaudeCLIBackend(LLMBackend):
         return SESSIONS_DIR / f"{safe_name}.session.json"
 
 
-def get_backend() -> ClaudeCLIBackend:
+def get_backend(*, write_dirs: list[Path] | None = None) -> ClaudeCLIBackend:
     """Get the configured LLM backend (MVP: always ClaudeCLI)."""
-    return ClaudeCLIBackend()
+    return ClaudeCLIBackend(write_dirs=write_dirs)

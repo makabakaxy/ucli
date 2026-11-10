@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import tempfile
 from pathlib import Path
@@ -11,7 +12,7 @@ from urllib.error import URLError
 
 import click
 
-from ucli.constants import CLI_DIR, DATA_DIR, TOOLS_DIR
+from ucli.constants import CLI_DIR, DATA_DIR, PROTECTED_SKILL_DIRS, TOOLS_DIR
 from ucli.preset.models import Manifest
 from ucli.preset.registry import _raw_base, find_preset
 from ucli.utils import safe_filename, skills_path
@@ -64,7 +65,12 @@ def pull_preset(
         click.echo(f"Error: could not download manifest for {server_name}@{resolved_version}.", err=True)
         return False
 
-    manifest = Manifest.from_dict(manifest_data)
+    try:
+        manifest = Manifest.from_dict(manifest_data)
+        targets = _validate_files(server_name, manifest.files)
+    except (KeyError, TypeError, ValueError) as e:
+        click.echo(f"Error: invalid preset manifest: {e}", err=True)
+        return False
     base_url = f"{raw_base}/{safe_name}/{resolved_version}"
 
     click.echo(f"Downloading preset for {server_name}...")
@@ -84,28 +90,21 @@ def pull_preset(
             if not click.confirm("  Overwrite with preset?", default=True):
                 return False
 
-    # Download each file
-    downloaded: list[Path] = []
-    for rel_path in manifest.files:
-        url = f"{base_url}/{rel_path}"
-        try:
+    # Finish all downloads before replacing any existing files.
+    with tempfile.TemporaryDirectory(prefix="ucli-preset-") as tmp:
+        staged = []
+        for index, (rel_path, target) in enumerate(targets):
+            if _preserve_user_file(rel_path, target):
+                continue
+            source = Path(tmp) / str(index)
+            if not download_file(f"{base_url}/{rel_path}", source):
+                click.echo(f"  Error: failed to download {rel_path}", err=True)
+                return False
+            staged.append((rel_path, source))
+        for rel_path, source in staged:
             target = _map_target_path(server_name, rel_path)
-        except ValueError as e:
-            click.echo(f"  Error: {e}", err=True)
-            for p in downloaded:
-                p.unlink(missing_ok=True)
-            return False
-        target.parent.mkdir(parents=True, exist_ok=True)
-
-        ok = download_file(url, target)
-        if not ok:
-            click.echo(f"  Error: failed to download {rel_path}", err=True)
-            for p in downloaded:
-                p.unlink(missing_ok=True)
-            return False
-
-        downloaded.append(target)
-        click.echo(f"  ✓ {rel_path}")
+            _copy_file(source, target)
+            click.echo(f"  ✓ {rel_path}")
 
     ensure_users_dir(skills_path(server_name))
 
@@ -146,23 +145,61 @@ def _download_json(url: str) -> dict | None:
 
 
 def _map_target_path(server_name: str, rel_path: str) -> Path:
-    """Map a manifest relative path to the local target path.
-
-    Raises ValueError if the resolved path escapes DATA_DIR (path traversal).
-    """
+    """Map only supported paths, confined to this server's own files."""
+    name = safe_filename(server_name)
+    if not re.fullmatch(r"[A-Za-z0-9_@][A-Za-z0-9._@-]*", name):
+        raise ValueError("Invalid preset server name")
+    if not isinstance(rel_path, str) or "\\" in rel_path or "\x00" in rel_path:
+        raise ValueError("Invalid preset file path")
+    parts = rel_path.split("/")
+    if any(part in {"", ".", ".."} for part in parts):
+        raise ValueError(f"Invalid preset file path: {rel_path}")
     if rel_path == "tools.json":
-        target = TOOLS_DIR / f"{safe_filename(server_name)}.json"
+        target = TOOLS_DIR / f"{name}.json"
+        root = TOOLS_DIR
     elif rel_path == "cli.yaml":
-        target = CLI_DIR / f"{safe_filename(server_name)}.yaml"
-    elif rel_path.startswith("skills/"):
-        target = skills_path(server_name) / rel_path[len("skills/"):]
+        target = CLI_DIR / f"{name}.yaml"
+        root = CLI_DIR
+    elif len(parts) > 1 and parts[0] == "skills":
+        root = skills_path(server_name)
+        target = root.joinpath(*parts[1:])
     else:
-        target = DATA_DIR / server_name / rel_path
+        raise ValueError(f"Unsupported preset file: {rel_path}")
 
-    resolved = target.resolve()
-    if not resolved.is_relative_to(DATA_DIR.resolve()):
+    if not target.resolve().is_relative_to(root.resolve()):
         raise ValueError(f"Path traversal detected in preset manifest: {rel_path}")
+    for path in (target, *target.parents):
+        if path == DATA_DIR:
+            break
+        if path.is_symlink():
+            raise ValueError(f"Symlink in preset destination: {rel_path}")
     return target
+
+
+def _validate_files(server_name: str, files: list[str]) -> list[tuple[str, Path]]:
+    if not isinstance(files, list) or not files:
+        raise ValueError("Preset files must be a nonempty list")
+    targets = [(relative, _map_target_path(server_name, relative)) for relative in files]
+    if len({path for _, path in targets}) != len(targets):
+        raise ValueError("Duplicate preset destination")
+    return targets
+
+
+def _preserve_user_file(relative: str, target: Path) -> bool:
+    parts = relative.split("/")
+    return len(parts) > 2 and parts[0] == "skills" and parts[1] in PROTECTED_SKILL_DIRS and target.exists()
+
+
+def _copy_file(source: Path, target: Path) -> None:
+    """Replace a validated destination without following a final symlink."""
+    target.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(dir=target.parent, suffix=".tmp")
+    try:
+        with open(fd, "wb") as output, source.open("rb") as incoming:
+            shutil.copyfileobj(incoming, output)
+        Path(temporary).replace(target)
+    finally:
+        Path(temporary).unlink(missing_ok=True)
 
 
 def install_from_local_dir(
@@ -184,6 +221,11 @@ def install_from_local_dir(
     try:
         manifest_data = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest = Manifest.from_dict(manifest_data)
+        targets = _validate_files(server_name, manifest.files)
+        for rel_path, _ in targets:
+            source = version_dir / rel_path
+            if not source.resolve().is_relative_to(version_dir.resolve()) or not source.is_file():
+                raise ValueError(f"Invalid or missing preset source: {rel_path}")
     except Exception as e:
         click.echo(f"Error: could not read manifest.json: {e}", err=True)
         return False
@@ -203,20 +245,17 @@ def install_from_local_dir(
             if not click.confirm("  Overwrite with local preset?", default=True):
                 return False
 
-    for rel_path in manifest.files:
+    for rel_path, _ in targets:
         src = version_dir / rel_path
-        if not src.exists():
-            click.echo(f"  Error: missing file {rel_path} in {version_dir}", err=True)
-            return False
-
         try:
             target = _map_target_path(server_name, rel_path)
         except ValueError as e:
             click.echo(f"  Error: {e}", err=True)
             return False
 
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, target)
+        if _preserve_user_file(rel_path, target):
+            continue
+        _copy_file(src, target)
         click.echo(f"  ✓ {rel_path}")
 
     ensure_users_dir(skills_path(server_name))

@@ -142,9 +142,8 @@ def _build_prompt(server_name: str, version: str | None, merge: bool) -> str:
             f"- If there are tools that no longer exist, directly remove the corresponding leaf nodes\n\n"
             f"Step 7: Write the file\n"
             f"Write the fully merged YAML to {output_path}.\n\n"
-            f"Step 8: Self-validate\n"
-            f"Run `ucli cli validate {server_name}` to check that the merged YAML satisfies all rules.\n"
-            f"If validation fails, fix the YAML based on the output, rewrite {output_path}, and run `ucli cli validate {server_name}` again until it passes.\n\n"
+            f"Step 8: Finish writing\n"
+            f"Only write the requested YAML file. ucli will validate it after you finish and report any errors for correction. Do not run shell commands.\n\n"
             f"Important constraints:\n"
             f"- The existing structure must be fully preserved; do not reorganize or modify descriptions\n"
             f"- Only new nodes need to follow the rules in cli_gen_skill.md\n"
@@ -167,9 +166,8 @@ def _build_prompt(server_name: str, version: str | None, merge: bool) -> str:
         f"- The YAML format is consistent with cli_gen_example.md\n\n"
         f"Step 5: Write the file\n"
         f"Write the fully generated YAML content to {output_path}.\n\n"
-        f"Step 6: Self-validate\n"
-        f"Run `ucli cli validate {server_name}` to check that the generated YAML satisfies all rules.\n"
-        f"If validation fails, fix the YAML based on the output, rewrite {output_path}, and run `ucli cli validate {server_name}` again until it passes.\n\n"
+        f"Step 6: Finish writing\n"
+        f"Only write the requested YAML file. ucli will validate it after you finish and report any errors for correction. Do not run shell commands.\n\n"
         f"Important constraints:\n"
         f"- Do not output explanations; execute the steps directly\n"
         f"- The written file must be valid YAML\n"
@@ -188,7 +186,7 @@ def _build_retry_prompt(server_name: str, errors: list[str]) -> str:
         f"Note:\n"
         f"- You have already read the skill/example/tools files; no need to re-read them\n"
         f"- Keep all correct parts unchanged; only fix the listed issues\n"
-        f"- After fixing, run `ucli cli validate {server_name}` to verify\n"
+        f"- Only write the YAML file. ucli will validate it after you finish; do not run shell commands\n"
         f"- After fixing, output a summary: \"Fixed: <brief description of what was fixed>\"\n"
     )
 
@@ -197,6 +195,6 @@ def _build_resume_prompt(server_name: str) -> str:
     return (
         f"Please continue the unfinished CLI command tree generation task.\n"
         f"Target server: {server_name}\n"
-        f"If the YAML file has already been generated, run `ucli cli validate {server_name}` to verify it.\n"
+        f"Only write the requested YAML file. ucli will validate it after you finish; do not run shell commands.\n"
         f"If it has not been generated yet, continue from where the task was interrupted.\n"
     )

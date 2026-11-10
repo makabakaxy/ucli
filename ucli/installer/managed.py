@@ -84,7 +84,8 @@ def _servers() -> dict:
 def _lock():
     import fcntl
 
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    DATA_DIR.mkdir(parents=True, exist_ok=True, mode=0o700)
+    DATA_DIR.chmod(0o700)
     with (DATA_DIR / "install.lock").open("a+") as lock:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -141,6 +142,9 @@ def _load_preset(name: str, source: Path) -> dict:
     manifest = json.loads((source / "manifest.json").read_text())
     if manifest["server"] != name:
         raise click.ClickException("Preset server name does not match the requested tool.")
+    version = manifest.get("server_version")
+    if not isinstance(version, str) or not re.fullmatch(r"[0-9]+(?:\.[0-9]+)*", version):
+        raise click.ClickException("Managed preset version must contain only numbers separated by dots.")
     required = {"cli.yaml", "tools.json", "skills/SKILL.md", "backend/package.json", "backend/package-lock.json"}
     checksums = manifest.get("checksums", {})
     if not required.issubset(checksums):

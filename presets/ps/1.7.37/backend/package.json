@@ -4,5 +4,8 @@
   "private": true,
   "dependencies": {
     "@alisaitteke/photoshop-mcp": "1.7.37"
+  },
+  "overrides": {
+    "@hono/node-server": "2.1.3"
   }
 }

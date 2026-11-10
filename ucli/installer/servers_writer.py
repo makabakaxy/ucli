@@ -9,6 +9,7 @@ import yaml
 
 from ucli.config.models import ServerConfig
 from ucli.constants import DATA_DIR, SERVERS_YAML
+from ucli.utils.file_ops import atomic_write_text
 
 
 def load_servers_yaml() -> dict:
@@ -43,10 +44,11 @@ def write_server(config: ServerConfig, force: bool = False) -> bool:
 
     servers[config.name] = config.to_dict()
 
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    SERVERS_YAML.write_text(
+    DATA_DIR.mkdir(parents=True, exist_ok=True, mode=0o700)
+    DATA_DIR.chmod(0o700)
+    atomic_write_text(
+        SERVERS_YAML,
         yaml.dump(data, allow_unicode=True, default_flow_style=False, sort_keys=False),
-        encoding="utf-8",
     )
     click.echo(f"✓ servers.yaml: {config.name} added")
     return True
@@ -62,9 +64,9 @@ def remove_server(server_name: str) -> bool:
         return False
 
     del servers[server_name]
-    SERVERS_YAML.write_text(
+    atomic_write_text(
+        SERVERS_YAML,
         yaml.dump(data, allow_unicode=True, default_flow_style=False, sort_keys=False),
-        encoding="utf-8",
     )
     click.echo(f"✓ servers.yaml: {server_name} removed")
     return True

@@ -6,15 +6,15 @@ import json
 import re
 import shutil
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import click
 import yaml
 
 from ucli.preset.models import Manifest
 from ucli.preset.pusher import prepare_preset
-from ucli.utils import safe_filename
-from ucli.utils.file_ops import ensure_users_dir
+from ucli.utils import safe_filename, skills_path
+from ucli.utils.file_ops import atomic_write_text, ensure_users_dir
 
 
 def _read_skill_description(version_dir: Path) -> str:
@@ -63,7 +63,7 @@ def rebuild_index(output_dir: str) -> None:
     aggregates them into a single ``index.json`` at the root.
     Also extracts aliases from cli.yaml files.
     """
-    root = Path(output_dir)
+    root = Path(output_dir).expanduser().resolve()
     entries: dict[str, dict] = {}  # server -> entry dict
     all_aliases: dict[str, str] = {}  # alias -> server
 
@@ -119,9 +119,8 @@ def rebuild_index(output_dir: str) -> None:
         index["aliases"] = dict(sorted(all_aliases.items()))
 
     index_path = root / "index.json"
-    index_path.write_text(
+    atomic_write_text(index_path,
         json.dumps(index, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
     )
     alias_count = len(all_aliases)
     suffix = f", {alias_count} alias(es)" if alias_count else ""
@@ -141,12 +140,41 @@ def export_preset(
 
     Returns True on success.
     """
+    name = safe_filename(server_name)
+    if not re.fullmatch(r"[A-Za-z0-9_@][A-Za-z0-9_.@-]*", name):
+        click.echo("Error: invalid preset server name.", err=True)
+        return False
+    if version is not None and not _valid_version(version):
+        click.echo("Error: preset version must be a single directory name.", err=True)
+        return False
+
     result = prepare_preset(server_name, version)
     if result is None:
         return False
     preset_version, file_pairs, manifest, _tools_json = result
 
-    target_dir = Path(output_dir) / safe_filename(server_name) / preset_version
+    if not _valid_version(preset_version):
+        click.echo("Error: preset version must be a single directory name.", err=True)
+        return False
+    root = Path(output_dir).expanduser().resolve()
+    server_dir = root / name
+    target_dir = server_dir / preset_version
+    if (server_dir.is_symlink() or target_dir.is_symlink()
+            or server_dir.resolve().parent != root
+            or target_dir.resolve().parent != server_dir.resolve()):
+        click.echo("Error: preset export destination escapes its directory.", err=True)
+        return False
+    # Validate every path before replacing any existing export.
+    for rel_path, local_path in file_pairs:
+        relative = PurePosixPath(rel_path)
+        if (relative.is_absolute() or ".." in relative.parts or "\\" in rel_path
+                or not relative.parts or local_path.is_symlink()
+                or not (target_dir / rel_path).resolve().is_relative_to(target_dir.resolve())):
+            click.echo("Error: invalid preset export file path.", err=True)
+            return False
+        if relative.parts[0] == "skills" and not local_path.resolve().is_relative_to(skills_path(server_name).resolve()):
+            click.echo("Error: preset source file escapes its skill directory.", err=True)
+            return False
 
     # Confirm
     click.echo(f"\nExport to: {target_dir}/")
@@ -194,3 +222,8 @@ def export_preset(
 
     click.echo(f"\n✅ Exported to {target_dir}/")
     return True
+
+
+def _valid_version(version: str) -> bool:
+    """Allow version labels without interpreting them as paths."""
+    return isinstance(version, str) and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._+-]*", version) is not None

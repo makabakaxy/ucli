@@ -164,7 +164,8 @@ async def _close_clients(clients: set[asyncio.StreamWriter]) -> None:
 
 async def run_daemon() -> int:
     """Main daemon entry point — runs until idle or max lifetime."""
-    DAEMON_SOCK.parent.mkdir(parents=True, exist_ok=True)
+    DAEMON_SOCK.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    DAEMON_SOCK.parent.chmod(0o700)
     logging.basicConfig(
         filename=str(DAEMON_LOG),
         level=logging.INFO,
@@ -199,6 +200,7 @@ async def run_daemon() -> int:
             lambda r, w: _client_handler(r, w, pool, activity_event, clients, handlers),
             path=str(DAEMON_SOCK),
         )
+        DAEMON_SOCK.chmod(0o600)
         logger.info("Daemon started, socket=%s", DAEMON_SOCK)
         while True:
             if shutdown_event.is_set():
