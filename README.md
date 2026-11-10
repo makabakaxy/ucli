@@ -1,147 +1,182 @@
 # ucli
 
-Install tools for AI agents. Each tool includes CLI commands, a skill, and an MCP backend.
+Turn MCP servers and local scripts into CLI commands and agent skills.
+
+ucli gives AI agents a command-line interface to the tools you already use. It discovers MCP tools, generates a hierarchical CLI, and creates skills for Codex, Claude Code, and Cursor. You can also add local scripts to the same command tree.
+
+Use it for developer tools, project management, databases, desktop apps, or your own automation. Photoshop is one shipped integration.
+
+## Why
+
+An MCP server can expose many tools. Loading every tool schema into an agent's context can use a large part of its input budget before any work begins.
+
+ucli gives the agent a skill with usage instructions and references. The agent discovers commands through help and calls the CLI, while ucli talks to the MCP server. To avoid loading both interfaces, use skill-based access with the original MCP registration disabled.
+
+- **One backend:** reuse an MCP server instead of maintaining a separate CLI implementation.
+- **Commands on demand:** explore a command tree with `--help` and load relevant skill references as needed.
+- **Reusable skills:** generate once and sync to supported agent clients.
+- **Local extensions:** add Python, shell, or Go helpers alongside MCP commands.
+- **Repeatable installation:** use presets for existing CLI mappings and skills; shipped presets can also manage a backend runtime.
+
+## Install
+
+Python 3.11+ and [uv](https://docs.astral.sh/uv/) are required. The runtime uses Unix sockets; Windows support is not currently provided.
+
+Install from this private repository with GitHub SSH access:
 
 ```bash
-ucli list
-ucli install ps
-ucli ps app ping
-ucli doctor ps
-ucli update ps --yes
-ucli uninstall ps
+uv tool install 'git+ssh://git@github.com/makabakaxy/ucli.git@main'
+ucli --help
 ```
 
-## Install ucli
-
-Python 3.11+ is required. Use an isolated tool environment with [uv](https://docs.astral.sh/uv/).
-
-From a local checkout:
+Or install from a local checkout:
 
 ```bash
 uv tool install .
-ucli install ps
 ```
 
-For a private GitHub release, after the repository and tag have been published:
+Run `uv tool update-shell` and open a new terminal if `ucli` is not on PATH. For a reproducible installation, replace `main` with a published tag or commit.
 
-```bash
-uv tool install 'git+ssh://git@github.com/makabakaxy/ucli.git@v1.1.0' && ucli install ps
-```
+AI discovery and generation currently use the Claude Code CLI. Install and authenticate it before generating new mappings or skills. Shipped presets such as `ps` do not require AI generation. Each MCP server may also require its own runtime, credentials, or application.
 
-This example requires access to that private repository, GitHub SSH authentication, uv, and uv's tool directory on PATH. The repository and tag must exist before using it. Run `uv tool update-shell` if the tool directory is not on PATH, then open a new terminal. A successful wheel build alone does not publish a release.
+## Quick start
 
-The ps preset ships inside the Python package. Installing it does not access a private raw-content registry, run AI search, or generate commands with an LLM. Python and npm dependency downloads still need network access on the first installation.
+### Convert an existing MCP server
 
-## Photoshop
-
-The initial shipped tool supports macOS. Install Adobe Photoshop and Node.js with npm first. The preset accepts Node.js 22, 24, and 26; Node.js 24 is recommended for new installations. Native npm dependencies may need a compiler when a prebuilt binary is unavailable. The installer does not install Photoshop, Node.js, or Adobe accounts.
-
-```bash
-ucli install ps                         # Default client: Codex
-ucli install ps --client claude,cursor  # Select additional clients
-ucli install ps --env PHOTOSHOP_PATH='/Applications/Adobe Photoshop 2026/Adobe Photoshop 2026.app'
-ucli doctor ps
-```
-
-Installation:
-
-1. Validate the shipped CLI, tool schema, and file checksums.
-2. Install `@alisaitteke/photoshop-mcp@1.7.37` with its committed npm lockfile in a private runtime directory.
-3. Start the MCP backend and check that all 128 mapped tools exist.
-4. Write ucli configuration and copy the skill to the selected clients. Restore touched files if this step fails.
-5. Check Photoshop connectivity and report whether the application is ready.
-
-The installer calls the backend through an absolute Node path and a local JS entrypoint. Normal CLI use does not run `npx` or download a package. Backend analytics, feedback nudges, and update checks are disabled by default.
-
-Photoshop must be open for the readiness check. macOS may ask for Automation permission. Installation can succeed while Photoshop is not ready; `ucli doctor ps` exits nonzero until its checks pass. Neural Filters also require the upstream UXP bridge plugin loaded in Photoshop. Generative features depend on Photoshop capabilities and the Adobe account. See the [upstream development guide](https://github.com/alisaitteke/photoshop-mcp/blob/v1.7.37/docs/development.md).
-
-```bash
-ucli ps document create --width 1920 --height 1080
-ucli ps layer list
-ucli ps text create --text 'Hello' --fontSize 48
-ucli ps document export --help
-```
-
-The Photoshop preset allows 700 seconds per CLI request. Override this with `UCLI_TIMEOUT=900 ucli ps ...`. A timed-out edit may still be running. Inspect Photoshop before retrying; ucli does not automatically retry edits.
-
-## Skills and configuration
-
-| Client | Skill directory |
-| --- | --- |
-| Codex | `~/.agents/skills/ps` |
-| Claude Code | `~/.claude/skills/ps` |
-| Cursor | `~/.cursor/skills/ps` |
-
-MCP configuration is stored in `~/.agents/ucli/servers.yaml`. The agent uses `ucli ps ...`, and ucli starts the MCP backend. Installing a shipped tool does not register or disable MCP servers in client configuration files.
-
-User notes in `users/` and local helpers in `scripts/` are preserved. Managed skill files are replaced on update. Newly selected clients are added to the existing installation.
-
-If ps already exists from an earlier conversion, the installer stops instead of replacing it silently. Back up any edits to generated files, then adopt it with:
-
-```bash
-ucli install ps --force
-```
-
-The installer preserves existing backend environment variables when adopting an installation. `--env KEY=VALUE` overrides a value. Do not include credentials in a published preset.
-
-## Update and uninstall
-
-```bash
-ucli update ps --dry-run
-ucli update ps --yes
-ucli uninstall ps --dry-run
-ucli uninstall ps --force
-```
-
-`update ps` installs the preset shipped with the currently installed ucli version. It does not follow npm's latest release or regenerate the skill. Upgrade ucli to a newer Git tag or wheel first to receive a new shipped preset. Runtime dependencies are reused when the lockfile and Node ABI match.
-
-An update refuses to overwrite edited managed files or configuration. Use `ucli install ps --force` after reviewing those edits. Configuration and skills are restored on an exception during installation. This is rollback for handled failures, not recovery from power loss or `SIGKILL`.
-
-Uninstall removes the recorded generated files, ps configuration, and managed backend. User notes and modified files are kept. If the ps configuration was edited, use `--keep-config` to keep both the configuration and its runtime. Other tools and client MCP settings are not changed.
-
-If ucli itself is upgraded while its daemon is running, wait for active commands to finish and run `ucli daemon stop` before the next tool call so the daemon loads the new code.
-
-## Other MCP servers
-
-Existing discovery, generation, and conversion workflows remain available:
+List servers already configured in Codex, Claude Code, or Cursor, then convert one by its configured name:
 
 ```bash
 ucli mcp list
-ucli mcp add existing-server --skip-disable
-ucli install other-server --client codex
-ucli mcp scan existing-server
-ucli mcp tools existing-server
-ucli mcp call existing-server tool_name --help
-ucli cli generate existing-server
-ucli cli validate existing-server
-ucli skill generate existing-server
-ucli skill sync existing-server --targets codex --skip-disable
+ucli mcp add mcp-atlassian
+ucli mcp-atlassian --help
 ```
 
-For tools without a shipped preset, installation uses the existing preset or AI discovery flow. That flow may require an AI CLI and interactive configuration. `ucli mcp install` and `ucli mcp update` remain available as aliases. The managed backend lifecycle described above currently applies to shipped presets with runtime metadata.
+Conversion reads the server configuration, reuses a preset or generates CLI mappings and skills, then syncs the skills to detected clients. By default, skill sync disables the original MCP registration in those clients. Use `--skip-disable` to keep it enabled.
 
-Maintainer commands are also available under `ucli preset`, `ucli exec`, and `ucli batch`. The legacy remote preset reader supports public GitHub raw URLs; private preset registries are not required or implemented for the shipped ps workflow.
-
-## Development and verification
+For example, with the Atlassian preset installed:
 
 ```bash
-uv lock
+ucli mcp-atlassian jira issue search --jql 'project = DEMO'
+ucli mcp-atlassian jira issue get --issue-key DEMO-123
+```
+
+Generated command names depend on the server and mapping. Use `--help` to inspect them.
+
+### Install a new MCP server
+
+```bash
+ucli install mcp-atlassian --client codex
+```
+
+Installation checks for a shipped preset, existing local configuration, or a remote preset before falling back to AI discovery and generation. It prompts for required configuration. `--client codex,claude,cursor` selects multiple skill destinations; the default is Codex.
+
+`ucli mcp install` is also supported. Both install forms keep existing client MCP registrations enabled. To switch fully to skill-based access, use `ucli skill sync <server> --targets <clients>` without `--skip-disable`.
+
+### Try a shipped integration
+
+```bash
+ucli install ps
+ucli ps app ping
+ucli doctor ps
+```
+
+The current shipped integration is Photoshop on macOS. It installs a pinned MCP backend, CLI mappings, and a skill in one step. Photoshop and a supported Node.js version must already be installed. See the [Photoshop guide](docs/photoshop.md) for requirements, examples, and lifecycle details.
+
+## How it works
+
+```text
+MCP configuration -> discover tools -> cli.yaml + skill files -> agent clients
+                                          |
+Agent -> ucli <server> <command> -> resolve mapping -> daemon -> MCP server
+                                          |
+                                    local script
+```
+
+The CLI mapping connects command paths to MCP tools or local helpers. MCP calls use a daemon that starts on demand and keeps server connections available. Local helpers run as subprocesses.
+
+Configuration and generated files live under `~/.agents/ucli/`:
+
+| Path | Contents |
+| --- | --- |
+| `servers.yaml` | MCP commands, arguments, and environment values |
+| `tools/` | Discovered tool schemas |
+| `cli/` | Command mappings |
+| `skills/` | Generated skills and references |
+
+Edit `servers.yaml` to update credentials or endpoints. If a backend is already running, use `ucli daemon reconnect <server>` to reload its connection.
+
+| Client | Synced skill directory |
+| --- | --- |
+| Codex | `~/.agents/skills/<server>` |
+| Claude Code | `~/.claude/skills/<server>` |
+| Cursor | `~/.cursor/skills/<server>` |
+
+Skill updates preserve custom content in `users/` and `scripts/`.
+
+## Presets
+
+A preset contains tool schemas, CLI mappings, and skill files. It lets you reuse generated results without running AI generation again.
+
+From a checkout, install one of the repository's presets directly:
+
+```bash
+ucli install mcp-atlassian --preset-dir ./presets --client codex
+```
+
+Inspect or export your local generated results:
+
+```bash
+ucli preset list --local
+ucli preset export mcp-atlassian
+```
+
+`ucli preset pull` and `ucli preset push` support remote preset workflows. The current download path uses public GitHub raw URLs and does not authenticate to private registries. For this private repository, use a local checkout with `--preset-dir`, or the shipped `ps` preset. Only `ps` is currently included in the Python distribution.
+
+## Local scripts
+
+Add a helper to a server's command tree:
+
+```bash
+ucli exec add mcp-atlassian ./scripts/report.py --command-path 'report build'
+ucli exec list mcp-atlassian
+ucli mcp-atlassian report build --help
+```
+
+ucli uses AI to generate the mapping and sync the skill. Python (`.py`), shell (`.sh`), and Go (`.go`) files are supported; their runtimes must be installed locally.
+
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `ucli list` | List shipped integrations and configured MCP servers |
+| `ucli mcp add <server>` | Convert an already-configured MCP server |
+| `ucli install <server>` | Install or convert a server and sync its skill |
+| `ucli update <server>` | Update tool schemas, CLI mappings, and skills |
+| `ucli uninstall <server>` | Remove an integration; use `--dry-run` to preview |
+| `ucli mcp tools <server>` | Inspect raw MCP tools |
+| `ucli mcp call <server> <tool>` | Call an MCP tool directly |
+| `ucli cli generate <server>` | Generate CLI mappings |
+| `ucli cli validate <server>` | Validate CLI mappings against tool schemas |
+| `ucli skill generate <server>` | Generate skill files |
+| `ucli skill sync <server> --targets codex` | Sync skills to selected clients |
+| `ucli exec add <server> <path>` | Add local script commands |
+| `ucli doctor <server>` | Check a managed installation and backend readiness |
+| `ucli batch fetch` / `ucli batch convert` | Prepare and process your own batch input file |
+
+`ucli mcp install` and `ucli mcp update` are also available. Managed presets update to the version shipped with ucli; other servers use the scan and generation workflow. Managed backend installation and `doctor` currently require a preset with runtime metadata.
+
+## Development
+
+```bash
+uv sync
 uv build
-python -m unittest discover -s tests -v
+uv run python -m unittest discover -s tests -v
 ```
 
-`presets/ps/1.7.37/` is the source for the shipped ps files. Hatch includes it as `ucli/_presets/ps/` in the wheel. Both the source distribution and wheel contain the npm lockfile and skill references. Update the manifest checksums whenever a preset file changes.
+Set `UCLI_USER_HOME` to a short temporary directory to isolate ucli configuration, generated files, daemon files, and skill destinations. This does not isolate third-party applications or backend state.
 
-Use `UCLI_USER_HOME` to redirect all ucli configuration, generated files, daemon files, and client skill destinations for an isolated smoke run:
-
-```bash
-UCLI_USER_HOME=/tmp/ucli-smoke ucli install ps
-UCLI_USER_HOME=/tmp/ucli-smoke ucli doctor ps
-UCLI_USER_HOME=/tmp/ucli-smoke ucli uninstall ps --force
-```
-
-This setting does not isolate Photoshop itself or third-party backend state. Keep the path short because the daemon uses a Unix socket.
+After upgrading ucli, let active commands finish and run `ucli daemon stop` so the next call loads the new code.
 
 ## License
 
-MIT. The Photoshop backend is a separate upstream project with its own license and notices. ucli installs it from npm; it does not include Adobe Photoshop.
+MIT. Third-party MCP servers and applications have their own licenses and requirements.

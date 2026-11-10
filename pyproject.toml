@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "ucli"
 version = "1.1.0"
-description = "Build hierarchical CLI commands and agent Skills for MCP servers and local helpers"
+description = "Turn MCP servers and local scripts into CLI commands and agent skills"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
@@ -54,4 +54,4 @@ packages = ["ucli"]
 "presets/ps" = "ucli/_presets/ps"
 
 [tool.hatch.build.targets.sdist]
-include = ["/ucli", "/presets/ps", "/pyproject.toml", "/README.md", "/LICENSE", "/uv.lock"]
+include = ["/ucli", "/presets/ps", "/docs", "/pyproject.toml", "/README.md", "/LICENSE", "/uv.lock"]
