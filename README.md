@@ -19,8 +19,6 @@ uv tool install ucli-tools
 # Or: pip install ucli-tools
 ```
 
-The package name is `ucli-tools`; the command is `ucli`. AI discovery and generation require an installed, authenticated Claude Code CLI. Each MCP server may need its own runtime and credentials.
-
 ## Quick start
 
 Try Photoshop as a concrete example. On macOS, open Photoshop and install Node.js 22, 24, or 26, then run:
