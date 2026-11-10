@@ -2,6 +2,8 @@
 
 Turn MCP servers and local scripts into CLI commands and agent skills.
 
+The Python distribution is named `ucli-tools`. The command and Python module are named `ucli`.
+
 ucli gives AI agents a command-line interface to the tools you already use. It discovers MCP tools, generates a hierarchical CLI, and creates skills for Codex, Claude Code, and Cursor. You can also add local scripts to the same command tree.
 
 Use it for developer tools, project management, databases, desktop apps, or your own automation. Photoshop is one shipped integration.
@@ -22,7 +24,13 @@ ucli gives the agent a skill with usage instructions and references. The agent d
 
 Python 3.11+ and [uv](https://docs.astral.sh/uv/) are required. The runtime uses Unix sockets; Windows support is not currently provided.
 
-Install from this private repository with GitHub SSH access:
+The first PyPI release of `ucli-tools` is not published yet. Once published, install it with:
+
+```bash
+uv tool install ucli-tools
+```
+
+Until then, install from this private repository with GitHub SSH access:
 
 ```bash
 uv tool install 'git+ssh://git@github.com/makabakaxy/ucli.git@main'

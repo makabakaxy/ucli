@@ -34,7 +34,7 @@ class DynamicRootGroup(click.Group):
 
 
 @click.group(cls=DynamicRootGroup, invoke_without_command=True)
-@click.version_option()
+@click.version_option(package_name="ucli-tools")
 @click.pass_context
 def cli(ctx):
     """ucli - Build hierarchical CLI commands for MCP servers and local helpers."""
