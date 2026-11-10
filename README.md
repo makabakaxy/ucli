@@ -15,8 +15,6 @@ uv tool install ucli-tools
 
 The package name is `ucli-tools`; the command is `ucli`. AI discovery and generation require an installed, authenticated Claude Code CLI. Each MCP server may need its own runtime and credentials.
 
-Only install trusted servers, presets, and scripts: they run with your account's permissions. AI generation uses limited tools by default. `UCLI_UNSAFE_AI=1` explicitly bypasses AI permission checks; it is not needed for normal use.
-
 ## Quick start
 
 Convert a server already configured in your agent client:
