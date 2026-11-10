@@ -1,0 +1,440 @@
+server: ps
+version: "1.7.37"
+generated_at: "2026-11-09T10:43:28Z"
+generated_by: ai
+
+server_aliases: []
+
+command_shortcuts: []
+
+commands:
+  app:
+    _description: "Session and utility operations"
+    ping:
+      _tool: photoshop_ping
+      _description: "Verify the Photoshop scripting engine responds"
+    version:
+      _tool: photoshop_get_version
+      _description: "Get the detected Photoshop version"
+    capabilities:
+      _tool: photoshop_get_capabilities
+      _description: "Get version-aware feature flags"
+    state:
+      _tool: photoshop_get_state
+      _description: "Get a snapshot of the Photoshop session state"
+    preview:
+      _tool: photoshop_get_preview
+      _description: "Export the active document as a base64 JPEG preview"
+    submit-feedback:
+      _tool: photoshop_submit_feedback
+      _description: "Record the answer to a product-feedback nudge"
+    execute-script:
+      _tool: photoshop_execute_script
+      _description: "Execute custom ExtendScript code inside Photoshop"
+    play-action:
+      _tool: photoshop_play_action
+      _description: "Play a named action from an action set"
+  document:
+    _description: "Document operations"
+    create:
+      _tool: photoshop_create_document
+      _description: "Create a new empty document"
+      _examples:
+        - "ucli ps document create --width 1920 --height 1080"
+    open:
+      _tool: photoshop_open_image
+      _description: "Open an image file as a new document"
+      _examples:
+        - "ucli ps document open --filePath /tmp/photo.jpg"
+    get:
+      _tool: photoshop_get_document_info
+      _description: "Get info about the active document"
+    list:
+      _tool: photoshop_list_documents
+      _description: "List all open documents"
+    activate:
+      _tool: photoshop_set_active_document
+      _description: "Switch the active document tab"
+    save:
+      _tool: photoshop_save_document
+      _description: "Save the active document to disk"
+    close:
+      _tool: photoshop_close_document
+      _description: "Close a document tab"
+    resize:
+      _tool: photoshop_resize_image
+      _description: "Resample the document to new pixel dimensions"
+    crop:
+      _tool: photoshop_crop_document
+      _description: "Crop the document to a pixel rectangle"
+    flatten:
+      _tool: photoshop_flatten_image
+      _description: "Flatten the document into a single background layer"
+    place:
+      _tool: photoshop_place_image
+      _description: "Place an image file as a new layer"
+    export:
+      _tool: photoshop_export_as
+      _description: "Export a copy as PNG, JPEG, WebP or AVIF"
+    stack:
+      _tool: photoshop_image_stack
+      _description: "Load images into a smart object with a stack mode"
+  layer:
+    _description: "Layer operations"
+    create:
+      _tool: photoshop_create_layer
+      _description: "Create a new empty layer"
+    delete:
+      _tool: photoshop_delete_layer
+      _description: "Delete the active layer"
+    list:
+      _tool: photoshop_get_layers
+      _description: "List all layers in the document"
+    select:
+      _tool: photoshop_select_layer_by_name
+      _description: "Select a layer by exact name"
+    duplicate:
+      _tool: photoshop_duplicate_layer
+      _description: "Duplicate the active layer"
+    rename:
+      _tool: photoshop_rename_layer
+      _description: "Rename the active layer"
+    merge-visible:
+      _tool: photoshop_merge_visible_layers
+      _description: "Merge all visible layers into one"
+    rasterize:
+      _tool: photoshop_rasterize_layer
+      _description: "Rasterize the active layer"
+    move:
+      _tool: photoshop_move_layer
+      _description: "Move the active layer by an offset"
+    scale:
+      _tool: photoshop_scale_layer
+      _description: "Scale the active layer by a percentage"
+    rotate:
+      _tool: photoshop_rotate_layer
+      _description: "Rotate the active layer"
+    fit:
+      _tool: photoshop_fit_layer_to_document
+      _description: "Fit the active layer to the document canvas"
+    apply-style:
+      _tool: photoshop_apply_layer_style
+      _description: "Apply a layer style such as shadow or stroke"
+    set:
+      _description: "Layer property setters"
+      opacity:
+        _tool: photoshop_set_layer_opacity
+        _description: "Set the layer opacity"
+      blend-mode:
+        _tool: photoshop_set_layer_blend_mode
+        _description: "Set the layer blend mode"
+      visibility:
+        _tool: photoshop_set_layer_visibility
+        _description: "Show or hide the layer"
+      locked:
+        _tool: photoshop_set_layer_locked
+        _description: "Lock or unlock the layer"
+    order:
+      _description: "Layer stacking order"
+      position:
+        _tool: photoshop_move_layer_to_position
+        _description: "Reorder the layer relative to a named layer"
+      top:
+        _tool: photoshop_move_layer_to_top
+        _description: "Move the layer to the top of the stack"
+      bottom:
+        _tool: photoshop_move_layer_to_bottom
+        _description: "Move the layer to the bottom of the stack"
+      up:
+        _tool: photoshop_move_layer_up
+        _description: "Move the layer up one position"
+      down:
+        _tool: photoshop_move_layer_down
+        _description: "Move the layer down one position"
+  smart-object:
+    _description: "Smart object operations"
+    convert:
+      _tool: photoshop_convert_to_smart_object
+      _description: "Convert a layer to a smart object"
+    replace:
+      _tool: photoshop_replace_smart_object_contents
+      _description: "Replace smart object contents from a file"
+    edit:
+      _tool: photoshop_edit_smart_object_contents
+      _description: "Open a smart object for editing"
+    copy:
+      _tool: photoshop_create_smart_object_via_copy
+      _description: "Create an independent smart object copy"
+  text:
+    _description: "Text layer operations"
+    create:
+      _tool: photoshop_create_text_layer
+      _description: "Create a new text layer"
+      _examples:
+        - "ucli ps text create --text 'Hello' --fontSize 48"
+    update:
+      _tool: photoshop_update_text_content
+      _description: "Replace the text content of the active text layer"
+    set-color:
+      _tool: photoshop_set_text_color
+      _description: "Set the color of the active text layer"
+    set-alignment:
+      _tool: photoshop_set_text_alignment
+      _description: "Set the alignment of the active text layer"
+    set-style:
+      _tool: photoshop_set_text_style
+      _description: "Set layer-wide typography on the text layer"
+    set-ranges:
+      _tool: photoshop_set_text_ranges
+      _description: "Apply mixed styles to ranges inside a text layer"
+    font:
+      _description: "Font operations"
+      list:
+        _tool: photoshop_list_fonts
+        _description: "List installed fonts"
+      install:
+        _tool: photoshop_install_font
+        _description: "Install a font file"
+      set:
+        _tool: photoshop_set_text_font
+        _description: "Set the font family and size of the text layer"
+  selection:
+    _description: "Selection operations"
+    bounds:
+      _tool: photoshop_get_selection_bounds
+      _description: "Get the bounds of the current selection"
+    rectangle:
+      _tool: photoshop_select_rectangle
+      _description: "Create a rectangular selection"
+    ellipse:
+      _tool: photoshop_select_ellipse
+      _description: "Create an elliptical selection"
+    all:
+      _tool: photoshop_select_all
+      _description: "Select the whole document"
+    subject:
+      _tool: photoshop_select_subject
+      _description: "Select the main subject of the layer"
+    deselect:
+      _tool: photoshop_deselect
+      _description: "Clear the current selection"
+    invert:
+      _tool: photoshop_invert_selection
+      _description: "Invert the current selection"
+    expand:
+      _tool: photoshop_expand_selection
+      _description: "Expand the selection outward"
+    contract:
+      _tool: photoshop_contract_selection
+      _description: "Contract the selection inward"
+    feather:
+      _tool: photoshop_feather_selection
+      _description: "Feather the selection edges"
+    save:
+      _tool: photoshop_save_selection
+      _description: "Save the selection to an alpha channel"
+  mask:
+    _description: "Layer mask operations"
+    create:
+      _tool: photoshop_create_layer_mask
+      _description: "Create a layer mask from the selection"
+    delete:
+      _tool: photoshop_delete_layer_mask
+      _description: "Delete the layer mask"
+    apply:
+      _tool: photoshop_apply_layer_mask
+      _description: "Apply the layer mask into the pixels"
+    gradient:
+      _tool: photoshop_apply_gradient_mask
+      _description: "Apply a gradient on the layer mask"
+    clipping:
+      _description: "Clipping mask operations"
+      create:
+        _tool: photoshop_create_clipping_mask
+        _description: "Create a clipping mask"
+      release:
+        _tool: photoshop_release_clipping_mask
+        _description: "Release a clipping mask"
+  fill:
+    _description: "Fill operations"
+    color:
+      _tool: photoshop_fill_layer
+      _description: "Fill the layer or selection with a solid color"
+      _examples:
+        - "ucli ps fill color --red 255 --green 0 --blue 0"
+    gradient:
+      _tool: photoshop_fill_gradient
+      _description: "Paint a two-color gradient on the layer"
+    content-aware:
+      _tool: photoshop_content_aware_fill
+      _description: "Fill the selection using Content-Aware Fill"
+  filter:
+    _description: "Filter operations"
+    blur:
+      _tool: photoshop_apply_gaussian_blur
+      _description: "Apply Gaussian Blur"
+    motion-blur:
+      _tool: photoshop_apply_motion_blur
+      _description: "Apply Motion Blur"
+    smart-blur:
+      _tool: photoshop_apply_smart_blur
+      _description: "Apply Smart Blur"
+    sharpen:
+      _tool: photoshop_apply_sharpen
+      _description: "Apply Unsharp Mask sharpening"
+    high-pass:
+      _tool: photoshop_apply_high_pass
+      _description: "Apply the High Pass filter"
+    noise:
+      _tool: photoshop_apply_noise
+      _description: "Add noise to the layer"
+    neural:
+      _tool: photoshop_neural_filter
+      _description: "Apply a Neural Filter"
+  adjust:
+    _description: "Color and tone adjustments"
+    brightness-contrast:
+      _tool: photoshop_adjust_brightness_contrast
+      _description: "Adjust brightness and contrast"
+    hue-saturation:
+      _tool: photoshop_adjust_hue_saturation
+      _description: "Adjust hue, saturation and lightness"
+    auto-levels:
+      _tool: photoshop_auto_levels
+      _description: "Run Auto Levels"
+    auto-contrast:
+      _tool: photoshop_auto_contrast
+      _description: "Run Auto Contrast"
+    curves:
+      _tool: photoshop_adjust_curves
+      _description: "Create a Curves adjustment layer"
+    vibrance:
+      _tool: photoshop_adjust_vibrance
+      _description: "Create a Vibrance adjustment layer"
+    exposure:
+      _tool: photoshop_adjust_exposure
+      _description: "Create an Exposure adjustment layer"
+    photo-filter:
+      _tool: photoshop_apply_photo_filter
+      _description: "Create a Photo Filter adjustment layer"
+    gradient-map:
+      _tool: photoshop_apply_gradient_map
+      _description: "Create a Gradient Map adjustment layer"
+    lut:
+      _tool: photoshop_apply_lut
+      _description: "Apply a Color Lookup LUT adjustment layer"
+    desaturate:
+      _tool: photoshop_desaturate
+      _description: "Desaturate the layer to grayscale"
+    invert:
+      _tool: photoshop_invert
+      _description: "Invert the colors of the layer"
+  ai:
+    _description: "Generative AI operations"
+    fill:
+      _tool: photoshop_generative_fill
+      _description: "Fill the selection with Generative Fill"
+    remove:
+      _tool: photoshop_generative_remove
+      _description: "Remove content with the AI Remove tool"
+    expand:
+      _tool: photoshop_generative_expand
+      _description: "Extend the canvas with Generative Expand"
+    upscale:
+      _tool: photoshop_generative_upscale
+      _description: "Upscale the document with Generative Upscale"
+    sky-replacement:
+      _tool: photoshop_sky_replacement
+      _description: "Replace the sky"
+    generate-image:
+      _tool: photoshop_generate_image
+      _description: "Generate an image from a text prompt"
+  history:
+    _description: "History operations"
+    undo:
+      _tool: photoshop_undo
+      _description: "Step back through history"
+    redo:
+      _tool: photoshop_redo
+      _description: "Redo undone operations"
+    list:
+      _tool: photoshop_get_history
+      _description: "Get the history stack"
+  artboard:
+    _description: "Artboard operations"
+    list:
+      _tool: photoshop_list_artboards
+      _description: "List artboards in the document"
+    create:
+      _tool: photoshop_create_artboard
+      _description: "Create a new artboard"
+    activate:
+      _tool: photoshop_set_active_artboard
+      _description: "Select an artboard"
+    export:
+      _tool: photoshop_export_artboards
+      _description: "Export all artboards to a folder"
+  dataset:
+    _description: "Data set operations"
+    list:
+      _tool: photoshop_list_datasets
+      _description: "List data sets in the document"
+    import:
+      _tool: photoshop_import_datasets
+      _description: "Import a data sets XML file"
+    generate:
+      _tool: photoshop_generate_from_datasets
+      _description: "Export one file per data set"
+  recipe:
+    _description: "One-shot workflow recipes"
+    remove-background:
+      _tool: photoshop_recipe_remove_background
+      _description: "Remove the background and isolate the subject"
+    enhance-portrait:
+      _tool: photoshop_recipe_enhance_portrait
+      _description: "Set up a non-destructive portrait enhancement"
+    prepare-for-web:
+      _tool: photoshop_recipe_prepare_for_web
+      _description: "Export a web-optimized version of the document"
+    export-social-variants:
+      _tool: photoshop_recipe_export_social_variants
+      _description: "Export one JPEG per social media platform"
+    apply-color-grade:
+      _tool: photoshop_recipe_apply_color_grade
+      _description: "Apply a named color grading preset"
+    frequency-separation:
+      _tool: photoshop_recipe_frequency_separation
+      _description: "Build a frequency separation stack"
+    batch-mockup-replace:
+      _tool: photoshop_recipe_batch_mockup_replace
+      _description: "Replace a smart object with each asset in a folder"
+    organize-layers:
+      _tool: photoshop_recipe_organize_layers
+      _description: "Rename and tidy the layer stack"
+    gradient-fade:
+      _tool: photoshop_recipe_gradient_fade
+      _description: "Fade the layer with a gradient mask"
+    sky-blend:
+      _tool: photoshop_recipe_sky_blend
+      _description: "Composite a sky image with a gradient mask"
+    dodge-burn:
+      _tool: photoshop_recipe_dodge_burn
+      _description: "Set up a dodge and burn layer"
+    remove-distraction:
+      _tool: photoshop_recipe_remove_distraction
+      _description: "Remove distractions using AI or content-aware fill"
+    split-carousel:
+      _tool: photoshop_recipe_split_carousel
+      _description: "Split a wide document into carousel slices"
+    batch-watermark:
+      _tool: photoshop_recipe_batch_watermark
+      _description: "Watermark every image in a folder"
+    passport-photo:
+      _tool: photoshop_recipe_passport_photo
+      _description: "Turn a portrait into a passport photo"
+    csv-to-cards:
+      _tool: photoshop_recipe_csv_to_cards
+      _description: "Generate cards from a CSV file"
+    sticker-outline:
+      _tool: photoshop_recipe_sticker_outline
+      _description: "Add a sticker outline"

@@ -1,0 +1,77 @@
+{
+  "server": "ps",
+  "server_version": "1.7.37",
+  "tool_count": 128,
+  "cli_hash": "1aa67726",
+  "generated_at": "2026-11-11T00:00:00Z",
+  "generated_by": "ucli",
+  "files": [
+    "backend/package-lock.json",
+    "backend/package.json",
+    "cli.yaml",
+    "skills/SKILL.md",
+    "skills/reference/adjust.md",
+    "skills/reference/ai.md",
+    "skills/reference/app.md",
+    "skills/reference/artboard.md",
+    "skills/reference/dataset.md",
+    "skills/reference/document.md",
+    "skills/reference/fill.md",
+    "skills/reference/filter.md",
+    "skills/reference/history.md",
+    "skills/reference/layer-order.md",
+    "skills/reference/layer-set.md",
+    "skills/reference/layer.md",
+    "skills/reference/mask.md",
+    "skills/reference/recipe.md",
+    "skills/reference/selection.md",
+    "skills/reference/smart-object.md",
+    "skills/reference/text.md",
+    "tools.json"
+  ],
+  "checksums": {
+    "backend/package-lock.json": "d4f938f3e63ec980e8dc702057c3955b7b7bfa79aa06299a33cb4b6d279f5984",
+    "backend/package.json": "3d28508b6f8c90f34a5763c01de7891b52341b70879c80d29a6b22a4012392d6",
+    "cli.yaml": "1aa6772640ec8a5a64056fd32cb9f16867caae0ed6f8b4586cf11d9d12db9232",
+    "skills/SKILL.md": "0512bd7cf9432852ca001c31c3a9eff6df996fbd6ad2fec65364d5e184288d38",
+    "skills/reference/adjust.md": "bc14dea15360bddd9135ecd2420bac3e90056a89be260c16b0b6c5103d53f822",
+    "skills/reference/ai.md": "df91bf77715b4178c2c5e6df1bb34aefabf9533d02289d65ccaff9c67578ea5d",
+    "skills/reference/app.md": "0b7acc2eb49435dc8279fee3d5646d80cdaf13b7c73264213630879d0d4a187e",
+    "skills/reference/artboard.md": "777fdfd0d88d3595adb4cdf1962f46eba3a5c049b587bff381571d9bffe5bbbc",
+    "skills/reference/dataset.md": "b339137d6e8ad90bbe98a8b9a189d1f4101194847cd85f1e38e8c8c7cc62ebf8",
+    "skills/reference/document.md": "b53feae9a9dad03a85d108048e702e5c19318f091fee3ad2c94d5cf562560fcb",
+    "skills/reference/fill.md": "6de5143e4004bb5aa7f024e8ddcc1c92de0d3463bc3898385349269f0f7d3868",
+    "skills/reference/filter.md": "61e98785211b69eb3045490575e8797b6fe4383f19691331ffffdaa813ec2cdf",
+    "skills/reference/history.md": "f15e53d1c533a6fc220ec69a35e16ad4c8798eb0882059a4e61bc3fe02764365",
+    "skills/reference/layer-order.md": "486dc0930bf882bef652d4cd0a42b775d74c9f287981b94d2df579b5ec329376",
+    "skills/reference/layer-set.md": "6e837c988eaab6fd42b14513b6fd00deb4a09cacadb9e547f728408354c195ae",
+    "skills/reference/layer.md": "6f8791e79afad6d942d66477f44c1a8bf78bd56cc1eb5710d383584baafa8a05",
+    "skills/reference/mask.md": "4d5029393c262c351e9595fa0ba1ea2a3236e5b79faf9603adb7b1ac3e96e264",
+    "skills/reference/recipe.md": "7562441d499ee20e46647132bf772ad4bde6a25d61c7c7f8acb5c6c799843b10",
+    "skills/reference/selection.md": "76d611bf5eb2896233add6e6c48b6a307e1b9b873f28b90864ee59f22f2ddc27",
+    "skills/reference/smart-object.md": "6e3496cb8059e914535a9ff05b2d4b2306e6c223747de6bc042139e6cf141401",
+    "skills/reference/text.md": "156a4416e5007e6643ebaf09effb39591e587bbdac9c1d7b85da8cec19e1656b",
+    "tools.json": "4bf689002bdcabc258c88765ffaa283006a2cac8df3fb67a39c6ebf599d180c2"
+  },
+  "runtime": {
+    "package": "@alisaitteke/photoshop-mcp",
+    "entrypoint": "node_modules/@alisaitteke/photoshop-mcp/dist/index.js",
+    "platforms": [
+      "darwin"
+    ],
+    "node_majors": [
+      22,
+      24,
+      26
+    ],
+    "env": {
+      "ANALYTICS_DISABLED": "1",
+      "PSMCP_FEEDBACK": "0",
+      "PSMCP_UPDATE_CHECK": "0"
+    }
+  },
+  "health": {
+    "tool": "photoshop_ping",
+    "success_text": "Successfully connected to Photoshop"
+  }
+}

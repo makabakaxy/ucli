@@ -1,0 +1,8 @@
+{
+  "name": "ucli-ps-runtime",
+  "version": "1.7.37",
+  "private": true,
+  "dependencies": {
+    "@alisaitteke/photoshop-mcp": "1.7.37"
+  }
+}
